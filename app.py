@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import bcrypt
-from models import db, Usuario
+from models import db, Usuario, Producto, CarritoItem
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui_cambiala'
@@ -253,6 +253,109 @@ def eliminar_usuario_api(usuario_id):
     
     return jsonify({'mensaje': 'Usuario eliminado exitosamente'})
 
+# Página para agregar producto
+@app.route('/producto/nuevo')
+@login_required
+def nuevo_producto():
+    if not current_user.es_admin:
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('tienda'))
+    
+    return render_template('agregar_productos.html')
+
+# Agregar producto al carrito (API)
+@app.route('/api/carrito/agregar', methods=['POST'])
+@login_required
+def agregar_carrito():
+    try:
+        data = request.json
+        producto_id = data.get('producto_id')
+        cantidad = data.get('cantidad', 1)
+        
+        # Validar que el producto existe
+        producto = Producto.query.get(producto_id)
+        if not producto:
+            return jsonify({'error': 'Producto no encontrado'}), 404
+        
+        # Validar stock
+        if producto.stock < cantidad:
+            return jsonify({'error': f'Stock insuficiente. Solo hay {producto.stock} unidades'}), 400
+        
+        # Buscar si el producto ya está en el carrito del usuario
+        carrito_item = CarritoItem.query.filter_by(
+            usuario_id=current_user.id,
+            producto_id=producto_id
+        ).first()
+        
+        if carrito_item:
+            # Si ya existe, actualizar cantidad
+            nueva_cantidad = carrito_item.cantidad + cantidad
+            if producto.stock < nueva_cantidad:
+                return jsonify({'error': f'Stock insuficiente. Stock disponible: {producto.stock}'}), 400
+            carrito_item.cantidad = nueva_cantidad
+        else:
+            # Si no existe, crear nuevo item
+            carrito_item = CarritoItem(
+                usuario_id=current_user.id,
+                producto_id=producto_id,
+                cantidad=cantidad
+            )
+            db.session.add(carrito_item)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'mensaje': f'✅ {cantidad}x {producto.nombre} agregado al carrito'
+        }), 201
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+# Ver el carrito de compras
+@app.route('/carrito')
+@login_required
+def ver_carrito():
+    # Obtener todos los items del carrito del usuario actual
+    items = CarritoItem.query.filter_by(usuario_id=current_user.id).all()
+    
+    # Calcular el total
+    total = 0
+    for item in items:
+        total += item.producto.precio * item.cantidad
+    
+    return render_template('carrito.html', items=items, total=total)    
+
+@app.route('/tienda')
+@login_required
+def tienda():
+    # Obtener todos los productos de la base de datos
+    productos = Producto.query.all()
+    
+    # Renderizar la plantilla pasando los productos
+    return render_template('productos.html', productos=productos)
+
+@app.route('/producto/<int:producto_id>')
+@login_required
+def ver_producto(producto_id):
+    # Buscar el producto por su ID
+    producto = Producto.query.get_or_404(producto_id)
+    
+    return render_template('producto_detalle.html', producto=producto)
+
+@app.route('/api/carrito/eliminar/<int:item_id>', methods=['DELETE'])
+@login_required
+def eliminar_carrito_item(item_id):
+    item = CarritoItem.query.get_or_404(item_id)
+    
+    # Verificar que el item pertenece al usuario actual
+    if item.usuario_id != current_user.id:
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    db.session.delete(item)
+    db.session.commit()
+    
+    return jsonify({'mensaje': 'Producto eliminado del carrito'})
+
 # Logout
 @app.route('/logout')
 @login_required
@@ -260,6 +363,7 @@ def logout():
     logout_user()
     flash('Sesión cerrada exitosamente', 'success')
     return redirect(url_for('login'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

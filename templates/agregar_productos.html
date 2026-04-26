@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Producto - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        /* Navbar */
+        .navbar {
+            background: #333;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .navbar h2 {
+            margin: 0;
+        }
+        
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Contenedor principal */
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        /* Tarjeta del formulario */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .form-header {
+            background: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .form-header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+        
+        .form-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+        }
+        
+        /* Formulario */
+        .form-body {
+            padding: 30px;
+        }
+        
+        .campo {
+            margin-bottom: 20px;
+        }
+        
+        .campo label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .campo label.requerido::after {
+            content: " *";
+            color: #dc3545;
+        }
+        
+        .campo input,
+        .campo textarea,
+        .campo select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .campo input:focus,
+        .campo textarea:focus,
+        .campo select:focus {
+            outline: none;
+            border-color: #28a745;
+            box-shadow: 0 0 5px rgba(40,167,69,0.3);
+        }
+        
+        .campo textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .campo small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        /* Grupo de botones */
+        .botones {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn-guardar {
+            flex: 1;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-guardar:hover {
+            background: #218838;
+        }
+        
+        .btn-cancelar {
+            flex: 1;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        
+        .btn-cancelar:hover {
+            background: #5a6268;
+        }
+        
+        /* Mensajes */
+        .mensaje {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .mensaje-exito {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .mensaje-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .navbar a {
+                margin: 0 10px;
+            }
+            
+            .form-body {
+                padding: 20px;
+            }
+            
+            .botones {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2>📦 Panel Administrador</h2>
+        <div>
+            <span>Hola, {{ current_user.nombre }}</span>
+            <a href="{{ url_for('dashboard') }}">← Volver al Dashboard</a>
+            <a href="{{ url_for('tienda') }}">🛍️ Tienda</a>
+            <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h1>➕ Agregar Nuevo Producto</h1>
+                <p>Completa los campos para añadir un producto al inventario</p>
+            </div>
+            
+            <div class="form-body">
+                <div id="mensaje" class="mensaje"></div>
+                
+                <form id="formProducto">
+                    <div class="campo">
+                        <label class="requerido">Nombre del producto</label>
+                        <input type="text" id="nombre" required placeholder="Ej: Laptop Gaming, Mouse Inalámbrico...">
+                    </div>
+                    
+                    <div class="campo">
+                        <label>Descripción</label>
+                        <textarea id="descripcion" placeholder="Describe el producto..."></textarea>
+                        <small>Información detallada del producto (opcional)</small>
+                    </div>
+                    
+                    <div class="campo">
+                        <label class="requerido">Precio</label>
+                        <input type="number" id="precio" step="0.01" required placeholder="0.00">
+                        <small>Precio en pesos (ej: 299.99)</small>
+                    </div>
+                    
+                    <div class="campo">
+                        <label class="requerido">Stock</label>
+                        <input type="number" id="stock" required value="0" placeholder="0">
+                        <small>Cantidad disponible en inventario</small>
+                    </div>
+                    
+                    <div class="campo">
+                        <label>Categoría</label>
+                        <input type="text" id="categoria" placeholder="Ej: Electrónica, Ropa, Hogar...">
+                        <small>Para organizar productos (opcional)</small>
+                    </div>
+                    
+                    <div class="campo">
+                        <label>URL de imagen</label>
+                        <input type="url" id="imagen_url" placeholder="https://ejemplo.com/imagen.jpg">
+                        <small>Enlace a la imagen del producto (opcional)</small>
+                    </div>
+                    
+                    <div class="botones">
+                        <button type="submit" class="btn-guardar">💾 Guardar Producto</button>
+                        <a href="{{ url_for('dashboard') }}" class="btn-cancelar">❌ Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('formProducto');
+        const mensajeDiv = document.getElementById('mensaje');
+        
+        function mostrarMensaje(texto, tipo) {
+            mensajeDiv.className = `mensaje mensaje-${tipo}`;
+            mensajeDiv.textContent = texto;
+            mensajeDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                mensajeDiv.style.display = 'none';
+            }, 4000);
+        }
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Recoger datos del formulario
+            const data = {
+                nombre: document.getElementById('nombre').value.trim(),
+                descripcion: document.getElementById('descripcion').value.trim(),
+                precio: parseFloat(document.getElementById('precio').value),
+                stock: parseInt(document.getElementById('stock').value),
+                categoria: document.getElementById('categoria').value.trim(),
+                imagen_url: document.getElementById('imagen_url').value.trim()
+            };
+            
+            // Validación básica
+            if (!data.nombre) {
+                mostrarMensaje('❌ El nombre del producto es requerido', 'error');
+                return;
+            }
+            
+            if (isNaN(data.precio) || data.precio <= 0) {
+                mostrarMensaje('❌ Ingresa un precio válido mayor a 0', 'error');
+                return;
+            }
+            
+            if (isNaN(data.stock) || data.stock < 0) {
+                mostrarMensaje('❌ Ingresa un stock válido (0 o más)', 'error');
+                return;
+            }
+            
+            // Deshabilitar botón mientras se procesa
+            const btnGuardar = document.querySelector('.btn-guardar');
+            const textoOriginal = btnGuardar.textContent;
+            btnGuardar.textContent = '⏳ Guardando...';
+            btnGuardar.disabled = true;
+            
+            try {
+                const response = await fetch('/api/productos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const resultado = await response.json();
+                
+                if (response.ok) {
+                    mostrarMensaje('✅ ' + resultado.mensaje, 'exito');
+                    form.reset();
+                    // Redirigir después de 1.5 segundos
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    mostrarMensaje('❌ Error: ' + (resultado.error || 'No se pudo crear el producto'), 'error');
+                    btnGuardar.textContent = textoOriginal;
+                    btnGuardar.disabled = false;
+                }
+            } catch (error) {
+                mostrarMensaje('❌ Error de conexión: ' + error.message, 'error');
+                btnGuardar.textContent = textoOriginal;
+                btnGuardar.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

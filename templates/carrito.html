@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mi Carrito</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        .total { font-size: 1.5em; font-weight: bold; margin-top: 20px; }
+        .btn { background: #dc3545; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px; }
+        .seguir { background: #007bff; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🛒 Mi Carrito</h1>
+    
+    {% if items %}
+        <table>
+            <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+                <th></th>
+            </tr>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.producto.nombre }}</td>
+                <td>${{ "%.2f"|format(item.producto.precio) }}</td>
+                <td>{{ item.cantidad }}</td>
+                <td>${{ "%.2f"|format(item.producto.precio * item.cantidad) }}</td>
+                <td>
+                    <button class="btn" onclick="eliminar({{ item.id }})">Eliminar</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="total">Total: ${{ "%.2f"|format(total) }}</div>
+    {% else %}
+        <p>🛍️ Tu carrito está vacío</p>
+    {% endif %}
+    
+    <br>
+    <a href="/tienda" class="seguir">← Seguir comprando</a>
+    
+    <script>
+        function eliminar(itemId) {
+            if (confirm('¿Eliminar producto?')) {
+                fetch(`/api/carrito/eliminar/${itemId}`, { method: 'DELETE' })
+                .then(() => location.reload());
+            }
+        }
+    </script>
+</body>
+</html>
