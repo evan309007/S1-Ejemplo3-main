@@ -15,9 +15,6 @@
                 <span class="navbar-text me-3">Bienvenido, {{ current_user.nombre }}</span>
                 <a href="{{ url_for('tienda') }}" class="btn btn-primary me-2">🛍️ Tienda</a>
                 <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2"> Ver Carrito</a>
-                <a href="{{ url_for('nuevo_producto') }}" class="btn btn-primary me-2"> Agregar Producto</a>
-                <button class="btn-editar" onclick="editarProducto({{ productos.id }})">✏️ Editar</button>
-                <button class="btn-eliminar" onclick="eliminarProducto({{ productos.id }})">🗑️ Eliminar</button>
                 <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
@@ -204,42 +201,5 @@
             }
         }
     </script>
-    <script>
-    function editarProducto(id, nombreActual, precioActual, stockActual) {
-    const nuevoNombre = prompt('Nuevo nombre:', nombreActual);
-    if (nuevoNombre) {
-        fetch(`/api/productos/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre: nuevoNombre })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) alert('Error: ' + data.error);
-            else {
-                alert(data.mensaje);
-                location.reload();
-            }
-        });
-    }
-}
-    
-    function eliminarProducto(id) {
-        if (!confirm('¿Estás seguro de eliminar este producto?')) return;
-        
-        fetch(`/api/productos/${id}`, {
-            method: 'DELETE',
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert('Error: ' + data.error);
-            } else {
-                alert(data.mensaje);
-                location.reload();
-            }
-        });
-    }
-</script>
-</body>
+    </body>
 </html>

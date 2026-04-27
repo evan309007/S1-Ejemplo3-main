@@ -126,16 +126,15 @@ def perfil():
     return render_template('perfil.html', usuario=current_user)
 
 
-# Dashboard de admin (CRUD de usuarios)
 @app.route('/dashboard')
 @login_required
 def dashboard():
     if not current_user.es_admin:
-        flash('Acceso denegado. Se requieren permisos de administrador', 'error')
+        flash('Acceso denegado', 'error')
         return redirect(url_for('perfil'))
     
-    productos = Producto.query.all()
-    return render_template('dashboard.html', productos=productos)
+    usuarios = Usuario.query.all()  # ← Cambiar a usuarios
+    return render_template('dashboard.html', usuarios=usuarios)  # ← Cambiar a usuarios
 
 
 # API Endpoint para crear usuario (desde dashboard)

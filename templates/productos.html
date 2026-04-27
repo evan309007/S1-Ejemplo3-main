@@ -83,14 +83,16 @@
 </head>
 <body>
     <div class="navbar">
-        <h2>🛍️ Mi Tienda</h2>
-        <div>
-            <span>Bienvenido, {{ current_user.nombre }}</span>
-            <a href="{{ url_for('dashboard') }}" class="btn btn-primary me-2">🛍️ perfil</a>
-   <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2"> Ver Carrito</a>
-   <a href="{{ url_for('nuevo_producto') }}" class="btn btn-primary me-2"> Agregar Producto</a>
-            <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
-        </div>
+    <h2>🛍️ Evan Store</h2>
+    <div>
+        <span>Bienvenido, {{ current_user.nombre }}</span>
+        <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2"> Carrito </a>
+        {% if current_user.es_admin %}
+            <a href="{{ url_for('dashboard') }}"class="btn btn-primary me-2"> dashboard </a>
+            <a href="{{ url_for('nuevo_producto') }}"class="btn btn-primary me-2"> Agregar Producto </a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn btn-primary me-2">Cerrar Sesión</a>
+    </div>
     </div>
     <div class="mensaje" id="mensajeGlobal"></div>
 

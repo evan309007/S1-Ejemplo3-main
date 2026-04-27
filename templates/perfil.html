@@ -8,15 +8,16 @@
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark">
-        <div class="container">
-            <span class="navbar-brand">Mi Perfil</span>
-            <div class="d-flex">
-                <span class="navbar-text me-3">Bienvenido, {{ usuario.nombre }}</span>
-                <a href="{{ url_for('tienda') }}" class="btn btn-primary me-2">🛍️ Tienda</a>
-                <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2"> Ver Carrito</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Cerrar Sesión</a>
-            </div>
-        </div>
+        <div class="d-flex">
+    <span class="navbar-text me-3">Bienvenido, {{ usuario.nombre }}</span>
+    <a href="{{ url_for('tienda') }}" class="btn btn-primary me-2">🛍️ Tienda</a>
+    <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2">🛒 Carrito</a>
+    {% if current_user.es_admin %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-warning me-2">📊 Admin</a>
+        <a href="{{ url_for('nuevo_producto') }}" class="btn btn-success me-2">➕ Producto</a>
+    {% endif %}
+    <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Cerrar Sesión</a>
+</div>
     </nav>
 
     <div class="container mt-4">

@@ -212,12 +212,12 @@
 </head>
 <body>
     <div class="navbar">
-        <h2>📦 Panel Administrador</h2>
+        <h2>📦 Agregar Articulos</h2>
         <div>
             <span>Hola, {{ current_user.nombre }}</span>
-            <a href="{{ url_for('dashboard') }}">← Volver al Dashboard</a>
-            <a href="{{ url_for('tienda') }}">🛍️ Tienda</a>
-            <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary me-2">← Dashboard </a>
+            <a href="{{ url_for('tienda') }}" class="btn btn-primary me-2">🛍️ Tienda</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-primary me-2">Cerrar Sesión</a>
         </div>
     </div>
 
