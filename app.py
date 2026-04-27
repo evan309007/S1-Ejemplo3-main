@@ -125,6 +125,7 @@ def login():
 def perfil():
     return render_template('perfil.html', usuario=current_user)
 
+
 # Dashboard de admin (CRUD de usuarios)
 @app.route('/dashboard')
 @login_required
@@ -133,8 +134,9 @@ def dashboard():
         flash('Acceso denegado. Se requieren permisos de administrador', 'error')
         return redirect(url_for('perfil'))
     
-    usuarios = Usuario.query.all()
-    return render_template('dashboard.html', usuarios=usuarios)
+    productos = Producto.query.all()
+    return render_template('dashboard.html', productos=productos)
+
 
 # API Endpoint para crear usuario (desde dashboard)
 @app.route('/api/usuarios', methods=['POST'])
@@ -262,6 +264,101 @@ def nuevo_producto():
         return redirect(url_for('tienda'))
     
     return render_template('agregar_productos.html')
+
+# API para crear producto (recibe los datos del formulario)
+@app.route('/api/productos', methods=['POST'])
+@login_required
+def crear_producto():
+    if not current_user.es_admin:
+        return jsonify({'error': 'Acceso denegado'}), 403
+    
+    data = request.json
+    
+    # Validar campos requeridos
+    if not data.get('nombre') or not data.get('precio'):
+        return jsonify({'error': 'Nombre y precio son requeridos'}), 400
+    
+    # Crear el producto
+    nuevo_producto = Producto(
+        nombre=data['nombre'],
+        descripcion=data.get('descripcion', ''),
+        precio=float(data['precio']),
+        stock=int(data.get('stock', 0)),
+        categoria=data.get('categoria', ''),
+        imagen_url=data.get('imagen_url', '')
+    )
+    
+    db.session.add(nuevo_producto)
+    db.session.commit()
+    
+    return jsonify({
+        'mensaje': 'Producto creado exitosamente',
+        'producto_id': nuevo_producto.id
+    }), 201
+    
+# API para editar producto
+@app.route('/api/productos/<int:producto_id>', methods=['PUT'])
+@login_required
+def actualizar_producto(producto_id):
+    if not current_user.es_admin:
+        return jsonify({'error': 'Acceso denegado'}), 403
+    
+    producto = Producto.query.get_or_404(producto_id)
+    data = request.json
+    
+    # Actualizar campos
+    if 'nombre' in data:
+        producto.nombre = data['nombre']
+    if 'descripcion' in data:
+        producto.descripcion = data['descripcion']
+    if 'precio' in data:
+        producto.precio = float(data['precio'])
+    if 'stock' in data:
+        producto.stock = int(data['stock'])
+    if 'categoria' in data:
+        producto.categoria = data['categoria']
+    
+    db.session.commit()
+    
+    return jsonify({'mensaje': 'Producto actualizado exitosamente'})
+
+
+# API para eliminar producto
+@app.route('/api/productos/<int:producto_id>', methods=['DELETE'])
+@login_required
+def eliminar_producto(producto_id):
+    if not current_user.es_admin:
+        return jsonify({'error': 'Acceso denegado'}), 403
+    
+    producto = Producto.query.get_or_404(producto_id)
+    
+    # Verificar que no esté en ningún carrito
+    en_carrito = CarritoItem.query.filter_by(producto_id=producto_id).first()
+    if en_carrito:
+        return jsonify({'error': 'No se puede eliminar: producto está en un carrito'}), 400
+    
+    db.session.delete(producto)
+    db.session.commit()
+    
+    return jsonify({'mensaje': 'Producto eliminado exitosamente'})
+
+# API para obtener un producto específico
+@app.route('/api/productos/<int:producto_id>', methods=['GET'])
+@login_required
+def obtener_producto(producto_id):
+    if not current_user.es_admin:
+        return jsonify({'error': 'Acceso denegado'}), 403
+    
+    producto = Producto.query.get_or_404(producto_id)
+    
+    return jsonify({
+        'id': producto.id,
+        'nombre': producto.nombre,
+        'descripcion': producto.descripcion,
+        'precio': producto.precio,
+        'stock': producto.stock,
+        'categoria': producto.categoria
+    })
 
 # Agregar producto al carrito (API)
 @app.route('/api/carrito/agregar', methods=['POST'])
