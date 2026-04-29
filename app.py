@@ -369,6 +369,32 @@ def obtener_producto(producto_id):
         'stock': producto.stock,
         'categoria': producto.categoria
     })
+    
+@app.route('/api/productos/buscar')
+@login_required
+def buscar_productos():
+    query = request.args.get('q', '')
+    if query:
+        productos = Producto.query.filter(Producto.nombre.contains(query)).all()
+    else:
+        productos = Producto.query.all()
+    
+    return jsonify([{
+        'id': p.id,
+        'nombre': p.nombre,
+        'descripcion': p.descripcion,
+        'precio': p.precio,
+        'stock': p.stock,
+        'categoria': p.categoria,
+        'imagen_url': p.imagen_url
+    } for p in productos])    
+
+# Obtener cantidad de items en el carrito
+@app.route('/api/carrito/count')
+@login_required
+def carrito_count():
+    count = CarritoItem.query.filter_by(usuario_id=current_user.id).count()
+    return jsonify({'count': count})
 
 # Agregar producto al carrito (API)
 @app.route('/api/carrito/agregar', methods=['POST'])

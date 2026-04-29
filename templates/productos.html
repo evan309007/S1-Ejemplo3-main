@@ -3,7 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Tienda - Productos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <style>
+    .busqueda-container, .filtros-container {
+        max-width: 600px;
+        margin: 0 auto 20px auto;
+    }
+    .input-group {
+        display: flex;
+        gap: 10px;
+    }
+    .form-control {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .form-select {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        width: 100%;
+    }
+    .badge {
+        border-radius: 50%;
+        padding: 3px 7px;
+        font-size: 12px;
+        margin-left: 5px;
+    }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -79,6 +107,25 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        .busqueda-container {
+        max-width: 600px;
+        margin: 0 auto 30px auto;
+    }
+    .input-group {
+        display: flex;
+        gap: 10px;
+    }
+    .form-control {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #007bff;
+    }
     </style>
 </head>
 <body>
@@ -86,14 +133,22 @@
     <h2>🛍️ Evan Store</h2>
     <div>
         <span>Bienvenido, {{ current_user.nombre }}</span>
-        <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2"> Carrito </a>
-        {% if current_user.es_admin %}
+        <a href="{{ url_for('ver_carrito') }}" class="btn btn-danger me-2" id="carritoLink">
+    🛒 Carrito <span id="carritoCount" class="badge bg-danger" style="display: none;">0</span></a>
             <a href="{{ url_for('dashboard') }}"class="btn btn-primary me-2"> dashboard </a>
-        {% endif %}
-        <a href="{{ url_for('logout') }}" class="btn btn-primary me-2">Cerrar Sesión</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Cerrar Sesión</a>
     </div>
     </div>
     <div class="mensaje" id="mensajeGlobal"></div>
+
+     <!-- Barra de búsqueda - Pon esto dentro del <body>, antes del contenedor de productos -->
+     <div class="busqueda-container" style="max-width: 600px; margin: 0 auto 30px auto;">
+     <div class="input-group" style="display: flex; gap: 10px;">
+        <input type="text" id="buscador" class="form-control" placeholder="🔍 Buscar productos..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+        <button onclick="buscarProductos()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Buscar</button>
+        <button onclick="limpiarBusqueda()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Limpiar</button>
+     </div>
+     </div>
 
     <div class="productos-container">
         {% for producto in productos %}
@@ -119,42 +174,148 @@
     </div>
 
     <script>
-        function agregarAlCarrito(productoId) {
-            const cantidad = document.getElementById(`cantidad-${productoId}`).value;
-            const mensajeDiv = document.getElementById('mensajeGlobal');
-            
-            fetch('/api/carrito/agregar', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    producto_id: productoId,
-                    cantidad: parseInt(cantidad)
-                })
+    // ============ FUNCIÓN PARA MOSTRAR MENSAJES ============
+    function mostrarMensaje(texto, tipo) {
+        const mensajeDiv = document.getElementById('mensajeGlobal');
+        if (!mensajeDiv) return;
+        
+        mensajeDiv.style.display = 'block';
+        mensajeDiv.className = `mensaje mensaje-${tipo}`;
+        mensajeDiv.textContent = texto;
+        
+        setTimeout(() => {
+            mensajeDiv.style.display = 'none';
+        }, 3000);
+    }
+    
+    // ============ FUNCIÓN PARA AGREGAR AL CARRITO (VERSIÓN ÚNICA) ============
+    function agregarAlCarrito(productoId) {
+        const cantidadInput = document.getElementById(`cantidad-${productoId}`);
+        if (!cantidadInput) {
+            mostrarMensaje('❌ Error: No se encontró la cantidad', 'error');
+            return;
+        }
+        
+        const cantidad = cantidadInput.value;
+        
+        fetch('/api/carrito/agregar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                producto_id: productoId,
+                cantidad: parseInt(cantidad)
             })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                mostrarMensaje('❌ ' + data.error, 'error');
+            } else {
+                mostrarMensaje('✅ ' + data.mensaje, 'exito');
+                actualizarContadorCarrito();  // Actualizar contador después de agregar
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarMensaje('❌ Error de conexión', 'error');
+        });
+    }
+    
+    // ============ FUNCIÓN PARA ACTUALIZAR CONTADOR DEL CARRITO ============
+    function actualizarContadorCarrito() {
+        fetch('/api/carrito/count')
             .then(response => response.json())
             .then(data => {
-                mensajeDiv.style.display = 'block';
-                if (data.error) {
-                    mensajeDiv.className = 'mensaje mensaje-error';
-                    mensajeDiv.textContent = '❌ ' + data.error;
-                } else {
-                    mensajeDiv.className = 'mensaje mensaje-exito';
-                    mensajeDiv.textContent = '✅ ' + data.mensaje;
+                const badge = document.getElementById('carritoCount');
+                if (badge) {
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => console.error('Error al actualizar contador:', error));
+    }
+    
+    // ============ FUNCIÓN PARA BUSCAR PRODUCTOS ============
+    function buscarProductos() {
+        const query = document.getElementById('buscador').value;
+        
+        if (query.trim() === '') {
+            location.reload();
+            return;
+        }
+        
+        fetch(`/api/productos/buscar?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(productos => {
+                const container = document.querySelector('.productos-container');
+                
+                if (productos.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; grid-column: 1/-1;">
+                            <p>🔍 No se encontraron productos para "${escapeHTML(query)}"</p>
+                            <button onclick="location.reload()" class="btn">Ver todos</button>
+                        </div>
+                    `;
+                    return;
                 }
                 
-                // Ocultar mensaje después de 3 segundos
-                setTimeout(() => {
-                    mensajeDiv.style.display = 'none';
-                }, 3000);
+                container.innerHTML = productos.map(p => `
+                    <div class="producto-card">
+                        <h3>${escapeHTML(p.nombre)}</h3>
+                        <p>${p.descripcion ? escapeHTML(p.descripcion.substring(0, 100)) : 'Sin descripción'}</p>
+                        <p class="precio">$${p.precio.toFixed(2)}</p>
+                        <p class="stock">📦 Stock: ${p.stock} unidades</p>
+                        <label>Cantidad:</label>
+                        <input type="number" id="cantidad-${p.id}" value="1" min="1" max="${p.stock}" style="width: 100%; margin-bottom: 10px; padding: 5px;">
+                        <button class="btn" onclick="agregarAlCarrito(${p.id})">🛒 Agregar al Carrito</button>
+                    </div>
+                `).join('');
             })
             .catch(error => {
-                mensajeDiv.style.display = 'block';
-                mensajeDiv.className = 'mensaje mensaje-error';
-                mensajeDiv.textContent = '❌ Error al agregar: ' + error;
+                console.error('Error:', error);
+                mostrarMensaje('❌ Error al buscar productos', 'error');
+            });
+    }
+    
+    // ============ FUNCIÓN PARA LIMPIAR BÚSQUEDA ============
+    function limpiarBusqueda() {
+        document.getElementById('buscador').value = '';
+        location.reload();
+    }
+    
+    // ============ FUNCIÓN PARA ESCAPE HTML ============
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ============ INICIALIZACIÓN AL CARGAR LA PÁGINA ============
+    document.addEventListener('DOMContentLoaded', function() {
+        // Actualizar contador del carrito
+        actualizarContadorCarrito();
+        
+        // Configurar búsqueda con tecla Enter
+        const buscador = document.getElementById('buscador');
+        if (buscador) {
+            buscador.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    buscarProductos();
+                }
             });
         }
-    </script>
+    });
+</script>
+
 </body>
 </html>
