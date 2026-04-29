@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionar Productos - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background: #333;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .navbar h2 {
+            margin: 0;
+        }
+        
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        /* Tarjeta del formulario */
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .form-header {
+            background: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .form-header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+        
+        .form-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+        }
+        
+        .form-body {
+            padding: 30px;
+        }
+        
+        .campo {
+            margin-bottom: 20px;
+        }
+        
+        .campo label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .campo label.requerido::after {
+            content: " *";
+            color: #dc3545;
+        }
+        
+        .campo input,
+        .campo textarea,
+        .campo select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .campo input:focus,
+        .campo textarea:focus,
+        .campo select:focus {
+            outline: none;
+            border-color: #28a745;
+            box-shadow: 0 0 5px rgba(40,167,69,0.3);
+        }
+        
+        .campo textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .campo small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .botones {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn-guardar {
+            flex: 1;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-guardar:hover {
+            background: #218838;
+        }
+        
+        .btn-cancelar {
+            flex: 1;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        
+        .btn-cancelar:hover {
+            background: #5a6268;
+        }
+        
+        /* Tabla */
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            background: #007bff;
+            color: white;
+            padding: 15px 20px;
+        }
+        
+        .table-header h3 {
+            margin: 0;
+        }
+        
+        .table-body {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        
+        .btn-accion {
+            margin: 0 3px;
+        }
+        
+        .producto-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
+        
+        .mensaje {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .mensaje-exito {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .mensaje-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .navbar a {
+                margin: 0 10px;
+            }
+            
+            .form-body {
+                padding: 20px;
+            }
+            
+            .botones {
+                flex-direction: column;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h2>📦 Gestión de Productos</h2>
+        <div>
+            <span>Hola, {{ current_user.nombre }}</span>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-success me-2">👥 dashboard</a>
+            <a href="{{ url_for('tienda') }}" class="btn btn-success me-2">🛍️ Tienda</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger me-2">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="mensajeGlobal" class="mensaje"></div>
+
+        <!-- TABLA DE PRODUCTOS -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>📋 Lista de Productos</h3>
+            </div>
+            <div class="table-body">
+                <table id="tablaProductos" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Imagen</th>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Categoría</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in productos %}
+                        <tr id="row-{{ p.id }}">
+                            <td>{{ p.id }}</td>
+                            <td>
+                                {% if p.imagen_url %}
+                                    <img src="{{ p.imagen_url }}" class="producto-img" onerror="this.src='https://via.placeholder.com/50'">
+                                {% else %}
+                                    <span style="font-size: 30px;">📷</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ p.nombre }}</td>
+                            <td>${{ "%.2f"|format(p.precio) }}</td>
+                            <td>{{ p.stock }}</td>
+                            <td>{{ p.categoria or '-' }}</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm btn-accion" onclick="editarProducto({{ p.id }})">✏️ Editar</button>
+                                <button class="btn btn-danger btn-sm btn-accion" onclick="eliminarProducto({{ p.id }})">🗑️ Eliminar</button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No hay productos registrados. ¡Crea el primero!</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- FORMULARIO PARA CREAR/EDITAR -->
+        <div class="form-card">
+            <div class="form-header">
+                <h1 id="formTitulo">➕ Agregar Nuevo Producto</h1>
+                <p id="formSubtitulo">Completa los campos para añadir un producto al inventario</p>
+            </div>
+            
+            <div class="form-body">
+                <input type="hidden" id="productoId" value="">
+                
+                <div class="campo">
+                    <label class="requerido">Nombre del producto</label>
+                    <input type="text" id="nombre" required placeholder="Ej: Laptop Gaming, Mouse Inalámbrico...">
+                </div>
+                
+                <div class="campo">
+                    <label>Descripción</label>
+                    <textarea id="descripcion" placeholder="Describe el producto..."></textarea>
+                    <small>Información detallada del producto (opcional)</small>
+                </div>
+                
+                <div class="campo">
+                    <label class="requerido">Precio</label>
+                    <input type="number" id="precio" step="0.01" required placeholder="0.00">
+                    <small>Precio en pesos (ej: 299.99)</small>
+                </div>
+                
+                <div class="campo">
+                    <label class="requerido">Stock</label>
+                    <input type="number" id="stock" required value="0" placeholder="0">
+                    <small>Cantidad disponible en inventario</small>
+                </div>
+                
+                <div class="campo">
+                    <label>Categoría</label>
+                    <input type="text" id="categoria" placeholder="Ej: Electrónica, Ropa, Hogar...">
+                    <small>Para organizar productos (opcional)</small>
+                </div>
+                
+                <div class="campo">
+                    <label>URL de imagen</label>
+                    <input type="url" id="imagen_url" placeholder="https://ejemplo.com/imagen.jpg">
+                    <small>Enlace a la imagen del producto (opcional)</small>
+                </div>
+                
+                <div class="botones">
+                    <button type="button" class="btn-guardar" onclick="guardarProducto()">💾 Guardar Producto</button>
+                    <button type="button" class="btn-cancelar" onclick="cancelarEdicion()" id="btnCancelar" style="display: none;">❌ Cancelar Edición</button>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        function mostrarMensaje(texto, tipo) {
+            const msgDiv = document.getElementById('mensajeGlobal');
+            msgDiv.className = `mensaje mensaje-${tipo}`;
+            msgDiv.textContent = texto;
+            msgDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        function guardarProducto() {
+            const id = document.getElementById('productoId').value;
+            const data = {
+                nombre: document.getElementById('nombre').value.trim(),
+                descripcion: document.getElementById('descripcion').value.trim(),
+                precio: parseFloat(document.getElementById('precio').value),
+                stock: parseInt(document.getElementById('stock').value),
+                categoria: document.getElementById('categoria').value.trim(),
+                imagen_url: document.getElementById('imagen_url').value.trim()
+            };
+            
+            if (!data.nombre) {
+                mostrarMensaje('❌ El nombre del producto es requerido', 'error');
+                return;
+            }
+            
+            if (isNaN(data.precio) || data.precio <= 0) {
+                mostrarMensaje('❌ Ingresa un precio válido mayor a 0', 'error');
+                return;
+            }
+            
+            if (isNaN(data.stock) || data.stock < 0) {
+                mostrarMensaje('❌ Ingresa un stock válido (0 o más)', 'error');
+                return;
+            }
+            
+            const btnGuardar = document.querySelector('.btn-guardar');
+            const textoOriginal = btnGuardar.textContent;
+            btnGuardar.textContent = '⏳ Guardando...';
+            btnGuardar.disabled = true;
+            
+            const url = id ? `/api/productos/${id}` : '/api/productos';
+            const method = id ? 'PUT' : 'POST';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    mostrarMensaje('❌ ' + data.error, 'error');
+                    btnGuardar.textContent = textoOriginal;
+                    btnGuardar.disabled = false;
+                } else {
+                    mostrarMensaje('✅ ' + data.mensaje, 'exito');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                mostrarMensaje('❌ Error de conexión: ' + error, 'error');
+                btnGuardar.textContent = textoOriginal;
+                btnGuardar.disabled = false;
+            });
+        }
+        
+        function editarProducto(id) {
+            fetch(`/api/productos/${id}`)
+                .then(response => response.json())
+                .then(p => {
+                    document.getElementById('formTitulo').textContent = '✏️ Editando Producto';
+                    document.getElementById('formSubtitulo').textContent = 'Modifica los campos y guarda los cambios';
+                    document.getElementById('productoId').value = p.id;
+                    document.getElementById('nombre').value = p.nombre;
+                    document.getElementById('descripcion').value = p.descripcion || '';
+                    document.getElementById('precio').value = p.precio;
+                    document.getElementById('stock').value = p.stock;
+                    document.getElementById('categoria').value = p.categoria || '';
+                    document.getElementById('imagen_url').value = p.imagen_url || '';
+                    document.getElementById('btnCancelar').style.display = 'inline-block';
+                    
+                    // Scroll al formulario
+                    document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth' });
+                });
+        }
+        
+        function eliminarProducto(id) {
+            if (!confirm('¿Estás seguro de eliminar este producto permanentemente?')) return;
+            
+            fetch(`/api/productos/${id}`, {
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    mostrarMensaje('❌ ' + data.error, 'error');
+                } else {
+                    mostrarMensaje('✅ ' + data.mensaje, 'exito');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            });
+        }
+        
+        function cancelarEdicion() {
+            document.getElementById('formTitulo').textContent = '➕ Agregar Nuevo Producto';
+            document.getElementById('formSubtitulo').textContent = 'Completa los campos para añadir un producto al inventario';
+            document.getElementById('productoId').value = '';
+            document.getElementById('nombre').value = '';
+            document.getElementById('descripcion').value = '';
+            document.getElementById('precio').value = '';
+            document.getElementById('stock').value = '0';
+            document.getElementById('categoria').value = '';
+            document.getElementById('imagen_url').value = '';
+            document.getElementById('btnCancelar').style.display = 'none';
+        }
+        
+        // Inicializar DataTable
+        $(document).ready(function() {
+            if ($('#tablaProductos tbody tr').length > 1 || $('#tablaProductos tbody tr td').length > 1) {
+                $('#tablaProductos').DataTable({
+                    language: {
+                        url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

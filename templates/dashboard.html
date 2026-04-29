@@ -13,6 +13,7 @@
             <span class="navbar-brand">Dashboard Admin</span>
             <div class="d-flex">
                 <span class="navbar-text me-3">Bienvenido, {{ current_user.nombre }}</span>
+                <a href="{{ url_for('gestionar_productos') }}" class="btn btn-success me-2">📦 Gestionar Productos</a>
                 <a href="{{ url_for('tienda') }}" class="btn btn-primary me-2">🛍️ Tienda</a>
                 <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2"> Ver Carrito</a>
                 <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Cerrar Sesión</a>

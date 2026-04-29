@@ -295,6 +295,17 @@ def crear_producto():
         'producto_id': nuevo_producto.id
     }), 201
     
+# Gestión completa de productos (CRUD)
+@app.route('/gestionar/productos')
+@login_required
+def gestionar_productos():
+    if not current_user.es_admin:
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('tienda'))
+    
+    productos = Producto.query.all()
+    return render_template('gestionar_productos.html', productos=productos)    
+    
 # API para editar producto
 @app.route('/api/productos/<int:producto_id>', methods=['PUT'])
 @login_required
