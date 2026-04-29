@@ -39,19 +39,43 @@
             background: #f5f5f5;
         }
         .navbar {
-            background: #333;
-            color: white;
-            padding: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            margin-left: 15px;
-        }
+    background: #333;
+    color: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+     }
+
+     .navbar div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+        .navbar a, .navbar .btn {
+    display: inline-block;
+    margin: 0;
+    text-decoration: none;
+}
+
+.navbar .btn {
+    background: #dc3545;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.navbar .btn:hover {
+    background: #c82333;
+    text-decoration: none;
+}
         .productos-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -129,24 +153,25 @@
     </style>
 </head>
 <body>
-    <div class="navbar">
+   <div class="navbar">
     <h2>🛍️ Evan Store</h2>
     <div>
         <span>Bienvenido, {{ current_user.nombre }}</span>
-        <a href="{{ url_for('ver_carrito') }}" class="btn btn-danger me-2" id="carritoLink">
-    🛒 Carrito <span id="carritoCount" class="badge bg-danger" style="display: none;">0</span></a>
-            <a href="{{ url_for('dashboard') }}"class="btn btn-primary me-2"> dashboard </a>
-        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Cerrar Sesión</a>
-    </div>
-    </div>
+        <a href="{{ url_for('ver_carrito') }}" class="btn-carrito" id="carritoLink">
+            🛒 Carrito <span id="carritoCount" class="badge">0</span></a>
+        <a href="{{ url_for('dashboard') }}" class="btn-dashboard">📊 Dashboard</a>
+        <a href="{{ url_for('logout') }}" class="btn-logout">🚪 Cerrar Sesión</a>
+     </div>
+     </div>
+
     <div class="mensaje" id="mensajeGlobal"></div>
 
-     <!-- Barra de búsqueda - Pon esto dentro del <body>, antes del contenedor de productos -->
+     <!-- Barra de búsqueda  -->
      <div class="busqueda-container" style="max-width: 600px; margin: 0 auto 30px auto;">
      <div class="input-group" style="display: flex; gap: 10px;">
         <input type="text" id="buscador" class="form-control" placeholder="🔍 Buscar productos..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-        <button onclick="buscarProductos()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Buscar</button>
-        <button onclick="limpiarBusqueda()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Limpiar</button>
+        <button onclick="buscarProductos()" style="background: #004cff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Buscar</button>
+        <button onclick="limpiarBusqueda()" style="background: #a50ddd; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Limpiar</button>
      </div>
      </div>
 
