@@ -63,7 +63,7 @@
 }
 
 .navbar .btn {
-    background: #dc3545;
+    background: #3540dc;
     color: white;
     padding: 8px 15px;
     border-radius: 5px;
@@ -157,10 +157,10 @@
     <h2>🛍️ Evan Store</h2>
     <div>
         <span>Bienvenido, {{ current_user.nombre }}</span>
-        <a href="{{ url_for('ver_carrito') }}" class="btn-carrito" id="carritoLink">
+        <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2" id="carritoLink">
             🛒 Carrito <span id="carritoCount" class="badge">0</span></a>
-        <a href="{{ url_for('dashboard') }}" class="btn-dashboard">📊 Dashboard</a>
-        <a href="{{ url_for('logout') }}" class="btn-logout">🚪 Cerrar Sesión</a>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary me-2">📊 Dashboard</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-primary me-2">🚪 Cerrar Sesión</a>
      </div>
      </div>
 
