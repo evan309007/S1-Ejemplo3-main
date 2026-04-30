@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import bcrypt
-from models import db, Usuario, Producto, CarritoItem
+from models import db, Usuario, Producto, CarritoItem, Orden, OrdenItem
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui_cambiala'
@@ -497,6 +497,80 @@ def logout():
     flash('Sesión cerrada exitosamente', 'success')
     return redirect(url_for('login'))
 
+
+# Procesar checkout (crear orden)
+@app.route('/api/checkout', methods=['POST'])
+@login_required
+def procesar_checkout():
+    try:
+        # Obtener items del carrito
+        items = CarritoItem.query.filter_by(usuario_id=current_user.id).all()
+        
+        if not items:
+            return jsonify({'error': 'El carrito está vacío'}), 400
+        
+        # Calcular total
+        total = 0
+        for item in items:
+            total += item.producto.precio * item.cantidad
+        
+        # Crear la orden
+        orden = Orden(
+            usuario_id=current_user.id,
+            total=total,
+            estado='pendiente'
+        )
+        db.session.add(orden)
+        db.session.flush()  # Para obtener el ID de la orden
+        
+        # Crear items de la orden y actualizar stock
+        for item in items:
+            orden_item = OrdenItem(
+                orden_id=orden.id,
+                producto_id=item.producto_id,
+                cantidad=item.cantidad,
+                precio_unitario=item.producto.precio
+            )
+            db.session.add(orden_item)
+            
+            # Actualizar stock del producto
+            item.producto.stock -= item.cantidad
+        
+        # Vaciar el carrito
+        for item in items:
+            db.session.delete(item)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'mensaje': '✅ Compra realizada con éxito',
+            'orden_id': orden.id,
+            'total': total
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+    # Ver histórico de órdenes del usuario
+@app.route('/mis-ordenes')
+@login_required
+def mis_ordenes():
+    ordenes = Orden.query.filter_by(usuario_id=current_user.id).order_by(Orden.fecha.desc()).all()
+    return render_template('mis_ordenes.html', ordenes=ordenes)
+
+# Ver detalle de una orden específica
+@app.route('/orden/<int:orden_id>')
+@login_required
+def ver_orden(orden_id):
+    orden = Orden.query.get_or_404(orden_id)
+    
+    # Verificar que la orden pertenece al usuario actual o es admin
+    if orden.usuario_id != current_user.id and not current_user.es_admin:
+        flash('Acceso denegado', 'error')
+        return redirect(url_for('tienda'))
+    
+    return render_template('orden_detalle.html', orden=orden)
 
 if __name__ == '__main__':
     app.run(debug=True)

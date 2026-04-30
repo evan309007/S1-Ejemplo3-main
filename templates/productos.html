@@ -161,6 +161,7 @@
         <span>Bienvenido, {{ current_user.nombre }}</span>
         <a href="{{ url_for('ver_carrito') }}" class="btn btn-primary me-2" id="carritoLink">
             🛒 Carrito <span id="carritoCount" class="badge">0</span></a>
+        <a href="{{ url_for('mis_ordenes') }}" class="btn btn-info btn-sm">📦 Mis Órdenes</a>
         <a href="{{ url_for('dashboard') }}" class="btn btn-primary me-2">📊 Dashboard</a>
         <a href="{{ url_for('logout') }}" class="btn btn-primary me-2">🚪 Cerrar Sesión</a>
         </div>

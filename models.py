@@ -46,6 +46,35 @@ class CarritoItem(db.Model):
     usuario = db.relationship('Usuario', backref='carrito_items')
     producto = db.relationship('Producto')
     
+    # Modelo para la orden de compra
+class Orden(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    total = db.Column(db.Float, nullable=False)
+    estado = db.Column(db.String(50), default='pendiente')  # pendiente, pagado, enviado, entregado
+    
+    # Relación con el usuario
+    usuario = db.relationship('Usuario', backref='ordenes')
+    
+    def __repr__(self):
+        return f'<Orden {self.id} - Usuario {self.usuario_id}>'
+
+# Modelo para cada item dentro de una orden
+class OrdenItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    orden_id = db.Column(db.Integer, db.ForeignKey('orden.id'), nullable=False)
+    producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    precio_unitario = db.Column(db.Float, nullable=False)  # Precio al momento de la compra
+    
+    # Relaciones
+    orden = db.relationship('Orden', backref='items')
+    producto = db.relationship('Producto')
+    
+    def __repr__(self):
+        return f'<OrdenItem Orden={self.orden_id} Producto={self.producto_id}>'
+    
     def __repr__(self):
         return f'<CarritoItem usuario={self.usuario_id} producto={self.producto_id}>'    
     
