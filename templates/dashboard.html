@@ -13,8 +13,20 @@
             <span class="navbar-brand">Dashboard Admin</span>
             <div class="d-flex">
                 <span class="navbar-text me-3">Bienvenido, {{ current_user.nombre }}</span>
-                <a href="{{ url_for('tienda') }}" class="btn btn-primary me-2"> home</a>
-                <a href="{{ url_for('gestionar_productos') }}" class="btn btn-success me-2">📦 Gestionar Productos</a>
+                <div class="dropdown" style="display: inline-block; margin-left: 10px;">
+                    <a href="{{ url_for('tienda') }}" class="btn btn-primary me-2"> Home</a>
+    <button class="btn btn-warning btn-sm dropdown-toggle" type="button" id="adminMenu" data-bs-toggle="dropdown" aria-expanded="false">
+        👑 Menu
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
+        <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">👥 Perfil</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('gestionar_productos') }}">📦 Inventario</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('mis_ordenes') }}">📋 Órdenes</a></li>
+    </ul>
+</div>
+
+
                 <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Cerrar Sesión</a>
             </div>
         </div>
@@ -45,7 +57,7 @@
                                 </thead>
                                 <tbody>
                                     {% for usuario in usuarios %}
-                                    <tr>
+                                    <tr id="row-{{ usuario.id }}">
                                         <td>{{ usuario.id }}</td>
                                         <td>{{ usuario.nombre }}</td>
                                         <td>{{ usuario.usuario }}</td>
@@ -117,11 +129,62 @@
         </div>
     </div>
 
+    <!-- Modal Editar Usuario -->
+<div class="modal fade" id="editarUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">✏️ Editar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit_usuario_id">
+                
+                <div class="mb-3">
+                    <label>Nombre Completo</label>
+                    <input type="text" class="form-control" id="edit_nombre" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label>Nombre de Usuario</label>
+                    <input type="text" class="form-control" id="edit_usuario" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label>Celular</label>
+                    <input type="text" class="form-control" id="edit_celular" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label>Email</label>
+                    <input type="email" class="form-control" id="edit_email" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" class="form-control" id="edit_password" placeholder="Dejar vacío para no cambiar">
+                    <small class="text-muted">Solo si deseas cambiar la contraseña</small>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="edit_es_admin">
+                    <label class="form-check-label">Es Administrador</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarEdicionUsuario()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     
+
     <script>
         $(document).ready(function() {
             $('#usuariosTable').DataTable({
@@ -163,26 +226,58 @@
         }
         
         function editarUsuario(id) {
-            const nuevoNombre = prompt('Ingrese el nuevo nombre:');
-            if (nuevoNombre) {
-                fetch(`/api/usuarios/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ nombre: nuevoNombre })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert('Error: ' + data.error);
-                    } else {
-                        alert('Usuario actualizado');
-                        location.reload();
-                    }
-                });
-            }
+    // Obtener datos del usuario desde la fila actual
+    const fila = document.querySelector(`#row-${id}`);
+    if (!fila) return;
+    
+    const celdas = fila.querySelectorAll('td');
+    
+    document.getElementById('edit_usuario_id').value = id;
+    document.getElementById('edit_nombre').value = celdas[1]?.textContent || '';
+    document.getElementById('edit_usuario').value = celdas[2]?.textContent || '';
+    document.getElementById('edit_celular').value = celdas[3]?.textContent || '';
+    document.getElementById('edit_email').value = celdas[4]?.textContent || '';
+    
+    const esAdminCell = celdas[5]?.textContent || '';
+    document.getElementById('edit_es_admin').checked = esAdminCell.includes('Admin');
+    document.getElementById('edit_password').value = '';
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('editarUsuarioModal'));
+    modal.show();
+}
+
+function guardarEdicionUsuario() {
+    const id = document.getElementById('edit_usuario_id').value;
+    const data = {
+        nombre: document.getElementById('edit_nombre').value,
+        usuario: document.getElementById('edit_usuario').value,
+        celular: document.getElementById('edit_celular').value,
+        email: document.getElementById('edit_email').value,
+        es_admin: document.getElementById('edit_es_admin').checked
+    };
+    
+    const nuevaPassword = document.getElementById('edit_password').value;
+    if (nuevaPassword) {
+        data.password = nuevaPassword;
+    }
+    
+    fetch(`/api/usuarios/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            alert('✅ Usuario actualizado');
+            location.reload();
         }
+    })
+    .catch(error => alert('Error: ' + error));
+}
         
         function eliminarUsuario(id) {
             if (confirm('¿Estás seguro de eliminar este usuario?')) {
