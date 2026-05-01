@@ -8,29 +8,8 @@
     <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container">
-            <span class="navbar-brand">Dashboard Admin</span>
-            <div class="d-flex">
-                <span class="navbar-text me-3">Bienvenido, {{ current_user.nombre }}</span>
-                <div class="dropdown" style="display: inline-block; margin-left: 10px;">
-                    <a href="{{ url_for('tienda') }}" class="btn btn-primary me-2"> Home</a>
-    <button class="btn btn-warning btn-sm dropdown-toggle" type="button" id="adminMenu" data-bs-toggle="dropdown" aria-expanded="false">
-        👑 Menu
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
-        <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">👥 Perfil</a></li>
-        <li><a class="dropdown-item" href="{{ url_for('gestionar_productos') }}">📦 Inventario</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" href="{{ url_for('mis_ordenes') }}">📋 Órdenes</a></li>
-    </ul>
-</div>
-
-
-                <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Cerrar Sesión</a>
-            </div>
-        </div>
-    </nav>
+    {% include 'navbar.html' %}
+    
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">

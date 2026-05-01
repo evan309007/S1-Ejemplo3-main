@@ -196,43 +196,9 @@
     </style>
 </head>
 <body>
-   <div class="navbar">
-    <div class="logo-area">
-        <h2>🛍️ Evan Store</h2>
-        <div class="dropdown">
-            <button class="btn btn-warning btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                👑 Menu
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">👥 Perfil</a></li>
-                {% if current_user.es_admin %}
-                <li><a class="dropdown-item" href="{{ url_for('gestionar_productos') }}">📦 Inventario</a></li>
-                {% endif %}
-                <li><a class="dropdown-item" href="{{ url_for('mis_ordenes') }}">📋 Órdenes</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('ver_carrito') }}">
-                    🛒 Carrito <span id="carritoCount" class="badge bg-danger">0</span>
-                </a></li>
-                
-            </ul>
-        </div>
-    </div>
-    <div class="busqueda-container" style="max-width: 600px; margin: 0 auto 0px auto;">
-     <div class="input-group" style="display: flex; gap: 10px;">
-        <input type="text" id="buscador" class="form-control" placeholder="🔍 Buscar productos..." style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-        <button onclick="buscarProductos()" style="background: #004cff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Buscar</button>
-        <button onclick="limpiarBusqueda()" style="background: #a50ddd; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Limpiar</button>
-     </div>
-     </div>
-    <div class="user-area">
-        <span>Bienvenido {{ current_user.nombre }}</span>
-        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">🚪 Cerrar Sesión</a>
-    </div>
-</div>
+   {% include 'navbar.html' %}
 
     <div class="mensaje" id="mensajeGlobal"></div>
-
-     <!-- Barra de búsqueda  -->
-     
 
     <div class="productos-container">
         {% for producto in productos %}
