@@ -3,6 +3,7 @@
 <head>
     <title>Mi Carrito</title>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -86,6 +87,50 @@
     });
 }
     </script>
-    
+    <script>
+    // Dropdown manual - Bootstrap alternativo
+    document.addEventListener('DOMContentLoaded', function() {
+        var dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+        
+        dropdownToggles.forEach(function(toggle) {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                var parent = this.closest('.dropdown');
+                var menu = parent.querySelector('.dropdown-menu');
+                
+                // Cerrar otros dropdowns abiertos
+                document.querySelectorAll('.dropdown.show').forEach(function(openDropdown) {
+                    if (openDropdown !== parent) {
+                        openDropdown.classList.remove('show');
+                        var openMenu = openDropdown.querySelector('.dropdown-menu');
+                        if (openMenu) openMenu.classList.remove('show');
+                    }
+                });
+                
+                // Toggle actual
+                parent.classList.toggle('show');
+                if (menu) menu.classList.toggle('show');
+                
+                var expanded = this.getAttribute('aria-expanded') === 'true' ? 'false' : 'true';
+                this.setAttribute('aria-expanded', expanded);
+            });
+        });
+        
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown.show').forEach(function(dropdown) {
+                    dropdown.classList.remove('show');
+                    var menu = dropdown.querySelector('.dropdown-menu');
+                    if (menu) menu.classList.remove('show');
+                    var toggle = dropdown.querySelector('.dropdown-toggle');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                });
+            }
+        });
+    });
+</script>
 </body>
 </html>
