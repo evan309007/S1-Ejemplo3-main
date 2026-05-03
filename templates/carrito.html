@@ -33,14 +33,28 @@
             </tr>
             {% endfor %}
         </table>
-        <div class="total">Total: ${{ "%.2f"|format(total) }}</div>
-        <div class="total">Total: ${{ "%.2f"|format(total) }}</div>
+
+        
+        <div class="totales-container">
+    <div class="total-line">
+        <span class="total-label">SubTotal:</span>
+        <span class="total-amount">${{ "%.2f"|format(total) }}</span>
+    </div>
+    <div class="total-line">
+        <span class="total-label">IVA (8%):</span>
+        <span class="total-amount">${{ "%.2f"|format(total * 0.08) }}</span>
+    </div>
+    <div class="total-line total-final">
+        <span class="total-label">Total a pagar:</span>
+        <span class="total-amount">${{ "%.2f"|format(total + total * 0.08) }}</span>
+    </div>
+</div>
 
 <!-- Botón de checkout -->
 <div class="checkout-container" style="margin-top: 20px;">
     <button onclick="procesarCheckout()" class="btn-checkout" id="btnCheckout">
-        ✅ Finalizar Compra
-    </button>
+    ✅ Finalizar Compra
+</button>
 </div>
     {% else %}
         <p>🛍️ Tu carrito está vacío</p>
