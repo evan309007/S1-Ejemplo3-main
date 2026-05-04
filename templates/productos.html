@@ -10,8 +10,6 @@
 <body>
    {% include 'navbar.html' %}
 
-    <div class="mensaje" id="mensajeGlobal"></div>
-
     <div class="productos-container">
         {% for producto in productos %}
         <div class="producto-card">
@@ -21,7 +19,7 @@
             <p class="stock">📦 Stock: {{ producto.stock }} unidades</p>
             <label>Cantidad:</label>
             <input type="number" id="cantidad-{{ producto.id }}" value="1" min="1" max="{{ producto.stock }}" style="width: 100%; margin-bottom: 10px; padding: 5px;">
-            <button class="btn" onclick="agregarAlCarrito({{ producto.id }})">
+            <button class="btn-agregar-carrito" onclick="agregarAlCarrito({{ producto.id }})">
                 🛒 Agregar al Carrito
             </button>
         </div>
@@ -35,8 +33,84 @@
         {% endfor %}
     </div>
 
+     <!-- Toast flotante para mensajes -->
+     <div id="toastMensaje" class="toast-mensaje">
+     <div class="toast-content">
+        <span class="toast-icon" id="toastIcon">✅</span>
+        <span class="toast-text" id="toastText">Producto agregado</span>
+     </div>
+     </div>
+
+    
     <script>
+
+
     // ============ FUNCIÓN PARA MOSTRAR MENSAJES ============
+
+        // ============ FUNCIÓN PARA AGREGAR AL CARRITO ============
+   function agregarAlCarrito(productoId) {
+    const cantidadInput = document.getElementById(`cantidad-${productoId}`);
+    const boton = document.querySelector(`button[onclick="agregarAlCarrito(${productoId})"]`);
+    
+    if (!cantidadInput) {
+        mostrarToast('Error: No se encontró la cantidad', 'error');
+        return;
+    }
+    
+    const cantidad = cantidadInput.value;
+    
+    // Animación del botón
+    if (boton) {
+        const textoOriginal = boton.innerHTML;
+        boton.innerHTML = '⏳ Agregando...';
+        boton.disabled = true;
+        boton.style.opacity = '0.7';
+        
+        setTimeout(() => {
+            if (boton.disabled) {
+                boton.innerHTML = textoOriginal;
+                boton.disabled = false;
+                boton.style.opacity = '1';
+            }
+        }, 3000);
+    }
+    
+    fetch('/api/carrito/agregar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            producto_id: productoId,
+            cantidad: parseInt(cantidad)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (boton) {
+            boton.innerHTML = '🛒 Agregar';
+            boton.disabled = false;
+            boton.style.opacity = '1';
+        }
+        
+        if (data.error) {
+            mostrarToast(data.error, 'error');
+        } else {
+            mostrarToast(data.mensaje, 'success');
+            actualizarContadorCarrito();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarToast('Error de conexión', 'error');
+        if (boton) {
+            boton.innerHTML = '🛒 Agregar';
+            boton.disabled = false;
+            boton.style.opacity = '1';
+        }
+    });
+}
+
     function mostrarMensaje(texto, tipo) {
         const mensajeDiv = document.getElementById('mensajeGlobal');
         if (!mensajeDiv) return;
@@ -50,41 +124,7 @@
         }, 3000);
     }
     
-    // ============ FUNCIÓN PARA AGREGAR AL CARRITO (VERSIÓN ÚNICA) ============
-    function agregarAlCarrito(productoId) {
-        const cantidadInput = document.getElementById(`cantidad-${productoId}`);
-        if (!cantidadInput) {
-            mostrarMensaje('❌ Error: No se encontró la cantidad', 'error');
-            return;
-        }
-        
-        const cantidad = cantidadInput.value;
-        
-        fetch('/api/carrito/agregar', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                producto_id: productoId,
-                cantidad: parseInt(cantidad)
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                mostrarMensaje('❌ ' + data.error, 'error');
-            } else {
-                mostrarMensaje('✅ ' + data.mensaje, 'exito');
-                actualizarContadorCarrito();  // Actualizar contador después de agregar
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            mostrarMensaje('❌ Error de conexión', 'error');
-        });
-    }
-    
+
     // ============ FUNCIÓN PARA ACTUALIZAR CONTADOR DEL CARRITO ============
     function actualizarContadorCarrito() {
         fetch('/api/carrito/count')
@@ -162,6 +202,42 @@
         });
     }
     
+     // Mostrar mensaje flotante agregado al carrito
+function mostrarToast(mensaje, tipo = 'success') {
+    const toast = document.getElementById('toastMensaje');
+    const toastIcon = document.getElementById('toastIcon');
+    const toastText = document.getElementById('toastText');
+    
+    // Configurar según tipo
+    toast.classList.remove('error', 'warning');
+    if (tipo === 'success') {
+        toast.style.background = '#28a745';
+        toastIcon.textContent = '✅';
+    } else if (tipo === 'error') {
+        toast.classList.add('error');
+        toast.style.background = '#dc3545';
+        toastIcon.textContent = '❌';
+    } else if (tipo === 'warning') {
+        toast.classList.add('warning');
+        toast.style.background = '#ffc107';
+        toast.style.color = '#333';
+        toastIcon.textContent = '⚠️';
+    }
+    
+    toastText.textContent = mensaje;
+    toast.classList.add('show');
+    
+    // Ocultar después de 3 segundos
+    setTimeout(() => {
+        toast.classList.remove('show');
+        // Restaurar color por defecto
+        setTimeout(() => {
+            toast.style.background = '#28a745';
+            toast.style.color = 'white';
+        }, 300);
+    }, 3000);
+}
+
     // ============ INICIALIZACIÓN AL CARGAR LA PÁGINA ============
     document.addEventListener('DOMContentLoaded', function() {
         // Actualizar contador del carrito
@@ -179,5 +255,11 @@
     });
 </script>
  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+ <!-- Toast flotante -->
+<div id="toastMensaje" style="position: fixed; bottom: 30px; right: 30px; background: #28a745; color: white; padding: 15px 25px; border-radius: 10px; z-index: 9999; display: none; align-items: center; gap: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">
+    <span id="toastIcon">✅</span>
+    <span id="toastText">Producto agregado</span>
+</div>
+
 </body>
 </html>
