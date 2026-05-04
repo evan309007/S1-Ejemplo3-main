@@ -4,6 +4,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 import bcrypt
 from models import db, Usuario, Producto, CarritoItem, Orden, OrdenItem
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui_cambiala'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///usuarios.db'
